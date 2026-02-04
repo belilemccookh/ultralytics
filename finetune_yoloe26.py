@@ -105,12 +105,12 @@ elif args.trainer == "YOLOEVPTrainer":
         if "savpe"  in name:
             continue
         if "cv4" in name:
-            # freeze.extend(
-            #     [
-            #         f"{head_index}.{name}.0.norm",
-            #         f"{head_index}.{name}.1.norm",
-            #         f"{head_index}.{name}.2.norm",
-            #     ]  )
+            freeze.extend(
+                [
+                    f"{head_index}.{name}.0.norm",
+                    f"{head_index}.{name}.1.norm",
+                    f"{head_index}.{name}.2.norm",
+                ]  )
             continue
         else:
             freeze.append(f"{head_index}.{name}")
