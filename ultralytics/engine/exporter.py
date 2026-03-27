@@ -1108,7 +1108,7 @@ class Exporter:
     @try_export
     def export_tfjs(self, prefix=colorstr("TensorFlow.js:")):
         """Export YOLO model to TensorFlow.js format."""
-        assert not IS_PYTHON_3_13, "TensorFlow.js export not support on Python>=3.13."
+        assert not IS_PYTHON_3_13, "TensorFlow.js export not supported on Python>=3.13."
         check_requirements("tensorflowjs")
         from ultralytics.utils.export.tensorflow import pb2tfjs
 
@@ -1136,6 +1136,7 @@ class Exporter:
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
         assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
+        assert not IS_PYTHON_3_13, "IMX export not supported on Python>=3.13."
 
         if getattr(self.model, "end2end", False):
             raise ValueError("IMX export is not supported for end2end models.")
