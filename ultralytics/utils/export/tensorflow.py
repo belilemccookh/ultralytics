@@ -108,9 +108,10 @@ def onnx2saved_model(
 
         onnx.helper.float32_to_bfloat16 = float32_to_bfloat16
 
-    import inspect
     import importlib
+    import inspect
     import pathlib
+
     import onnx2tf.ops.TopK as _t
 
     _path = pathlib.Path(inspect.getfile(_t))
