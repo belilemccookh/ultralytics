@@ -34,12 +34,12 @@ In a typical YOLO inference pipeline, the preprocessing steps run on the CPU:
 
 With DALI, all these operations run on the GPU, eliminating the CPU bottleneck. This is especially valuable when:
 
-| Scenario | Why DALI Helps |
-| -------- | -------------- |
-| **Fast GPU inference** | [TensorRT](../integrations/tensorrt.md) engines with sub-millisecond inference make CPU preprocessing the dominant cost |
-| **High-resolution inputs** | 1080p and 4K video streams require expensive resize operations |
-| **Large [batch sizes](https://www.ultralytics.com/glossary/batch-size)** | Server-side inference processing many images in parallel |
-| **Limited CPU cores** | Edge devices like [NVIDIA Jetson](nvidia-jetson.md), or dense GPU servers with few CPU cores per GPU |
+| Scenario                                                                 | Why DALI Helps                                                                                                          |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Fast GPU inference**                                                   | [TensorRT](../integrations/tensorrt.md) engines with sub-millisecond inference make CPU preprocessing the dominant cost |
+| **High-resolution inputs**                                               | 1080p and 4K video streams require expensive resize operations                                                          |
+| **Large [batch sizes](https://www.ultralytics.com/glossary/batch-size)** | Server-side inference processing many images in parallel                                                                |
+| **Limited CPU cores**                                                    | Edge devices like [NVIDIA Jetson](nvidia-jetson.md), or dense GPU servers with few CPU cores per GPU                    |
 
 ## Prerequisites
 
@@ -87,12 +87,12 @@ letterbox = LetterBox(
 
 The full preprocessing pipeline in [`ultralytics/engine/predictor.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/predictor.py) performs these steps:
 
-| Step | Operation | CPU Function | DALI Equivalent |
-| ---- | --------- | ------------ | --------------- |
-| 1 | Letterbox resize | `cv2.resize` | `fn.resize(mode="not_larger")` |
-| 2 | Centered padding | `cv2.copyMakeBorder` | `fn.crop(out_of_bounds_policy="pad")` |
-| 3 | BGR → RGB | `im[..., ::-1]` | `fn.decoders.image(output_type=types.RGB)` |
-| 4 | HWC → CHW + normalize /255 | `np.transpose` + `tensor / 255` | `fn.crop_mirror_normalize(std=[255,255,255])` |
+| Step | Operation                  | CPU Function                    | DALI Equivalent                               |
+| ---- | -------------------------- | ------------------------------- | --------------------------------------------- |
+| 1    | Letterbox resize           | `cv2.resize`                    | `fn.resize(mode="not_larger")`                |
+| 2    | Centered padding           | `cv2.copyMakeBorder`            | `fn.crop(out_of_bounds_policy="pad")`         |
+| 3    | BGR → RGB                  | `im[..., ::-1]`                 | `fn.decoders.image(output_type=types.RGB)`    |
+| 4    | HWC → CHW + normalize /255 | `np.transpose` + `tensor / 255` | `fn.crop_mirror_normalize(std=[255,255,255])` |
 
 The letterbox operation preserves the [aspect ratio](https://www.ultralytics.com/glossary/aspect-ratio) by:
 
@@ -216,7 +216,6 @@ This version exactly replicates the default Ultralytics preprocessing with cente
 !!! example "Build and run a DALI pipeline"
 
     ```python
-    import numpy as np
 
     # Build and run the pipeline
     pipe = yolo_dali_pipeline_centered(image_dir="/path/to/images", target_size=640)
@@ -238,7 +237,6 @@ You can pass a preprocessed [PyTorch](https://www.ultralytics.com/glossary/pytor
 !!! example "DALI + Ultralytics predict"
 
     ```python
-    import torch
     from nvidia.dali.plugin.pytorch import DALIGenericIterator
 
     from ultralytics import YOLO
@@ -553,13 +551,13 @@ ensemble_scheduling {
 
 DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` pipeline:
 
-| Task | Supported | Notes |
-| ---- | --------- | ----- |
-| [Detection](../tasks/detect.md) | ✅ | Standard letterbox preprocessing |
-| [Segmentation](../tasks/segment.md) | ✅ | Same preprocessing as detection |
-| [Pose Estimation](../tasks/pose.md) | ✅ | Same preprocessing as detection |
-| [Oriented Detection (OBB)](../tasks/obb.md) | ✅ | Same preprocessing as detection |
-| [Classification](../tasks/classify.md) | ❌ | Uses [torchvision](https://www.ultralytics.com/glossary/torchvision) transforms (center crop), not letterbox |
+| Task                                        | Supported | Notes                                                                                                        |
+| ------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------ |
+| [Detection](../tasks/detect.md)             | ✅        | Standard letterbox preprocessing                                                                             |
+| [Segmentation](../tasks/segment.md)         | ✅        | Same preprocessing as detection                                                                              |
+| [Pose Estimation](../tasks/pose.md)         | ✅        | Same preprocessing as detection                                                                              |
+| [Oriented Detection (OBB)](../tasks/obb.md) | ✅        | Same preprocessing as detection                                                                              |
+| [Classification](../tasks/classify.md)      | ❌        | Uses [torchvision](https://www.ultralytics.com/glossary/torchvision) transforms (center crop), not letterbox |
 
 ## Limitations
 
