@@ -959,7 +959,7 @@ class ReidDataset:
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
         label = self.pid_to_label.get(pid, pid)
-        return {"img": sample, "cls": label, "camid": camid, "img_path": filepath}
+        return {"img": sample, "cls": label, "camid": camid}
 
     def __len__(self) -> int:
         """Return the total number of samples."""
