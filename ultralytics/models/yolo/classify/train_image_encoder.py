@@ -250,7 +250,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
             import webdataset as wds
 
             return (
-                wds.WebDataset(shards, shardshuffle=mode == "train")
+                wds.WebDataset(shards, shardshuffle=mode == "train", nodesplitter=wds.split_by_node)
                 .shuffle(1000 if mode == "train" else 0)
                 .decode("pil", handler=wds.warn_and_continue)
                 .to_tuple("jpg", handler=wds.warn_and_continue)
