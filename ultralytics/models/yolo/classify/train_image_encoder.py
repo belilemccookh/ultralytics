@@ -111,8 +111,8 @@ class ImageEncoderTrainer(ClassificationTrainer):
     teachers run online each step (frozen, no pre-computed embeddings) following AM-RADIO/EUPE convention.
 
     Attributes:
-        teacher_names (list[str]): Teacher variants (e.g. ['eupe:vitb16'] or ['eupe:vitb16', 'dinov3:vitl16']).
-        teachers (dict): Loaded frozen teacher models keyed by safe name (e.g. 'eupe_vitb16').
+        teachers (list[str]): Parsed from args.teachers ('+' separated string).
+        teacher_models (dict): Loaded frozen teacher models keyed by safe name (e.g. 'eupe_vitb16').
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None):
@@ -120,23 +120,21 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
         Args:
             cfg (dict[str, Any], optional): Default configuration dictionary.
-            overrides (dict[str, Any], optional): Parameter overrides. Supports 'teacher_name' (single, e.g.
-            'eupe: vitb16') or 'teacher_names' (multi, '+' separated, e.g. 'eupe:vitb16+dinov3:vitl16').
+            overrides (dict[str, Any], optional): Parameter overrides. Use 'teachers' key with '+' separated
+            variants (e.g. 'eupe: vitb16' or 'eupe:vitb16+dinov3:vitl16').
             _callbacks (dict, optional): Callback functions.
         """
         if overrides is None:
             overrides = {}
         overrides.setdefault("close_mosaic", 0)  # no mosaic in distillation, avoids .reset() call
-        # Pop non-YOLO keys before super().__init__ (check_dict_alignment rejects unknown keys)
-        raw = overrides.pop("teacher_names", overrides.pop("teacher_name", "eupe:vitb16"))
-        self.teachers = {}
+        overrides.setdefault("teachers", "eupe:vitb16")
+        self.teacher_models = {}
         super().__init__(cfg, overrides, _callbacks)
-        # Canonical source on args -- DDP serializes vars(trainer.args) to subprocess temp file,
-        # subprocess __init__ pops it from overrides before its own super().__init__
-        self.args.teacher_names = raw if isinstance(raw, str) else "+".join(raw)
-        self.teacher_names = self.args.teacher_names.split("+")
-        self._safe_keys = [safe_key(n) for n in self.teacher_names]
-        self._teacher_imgsz = max(TEACHER_REGISTRY[n]["imgsz"] for n in self.teacher_names)
+        # self.args.teachers survives DDP serialization (in check_dict_alignment allowed_custom_keys)
+        raw = self.args.teachers
+        self.teachers = raw.split("+") if isinstance(raw, str) else raw
+        self._safe_keys = [safe_key(n) for n in self.teachers]
+        self._teacher_imgsz = max(TEACHER_REGISTRY[n]["imgsz"] for n in self.teachers)
 
     def _setup_train(self):
         """Set bf16 autocast after AMP check to avoid poisoning the yolo26n detection test."""
@@ -185,7 +183,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         self._load_teachers()
         # Build teacher config dict for the model
         teachers_cfg = {}
-        for name in self.teacher_names:
+        for name in self.teachers:
             reg = TEACHER_REGISTRY[name]
             teachers_cfg[name] = {
                 "embed_dim": reg["embed_dim"],
@@ -209,12 +207,12 @@ class ImageEncoderTrainer(ClassificationTrainer):
 
     def _load_teachers(self):
         """Load and cache all frozen teacher models."""
-        for name, sk in zip(self.teacher_names, self._safe_keys):
-            if sk not in self.teachers:
+        for name, sk in zip(self.teachers, self._safe_keys):
+            if sk not in self.teacher_models:
                 LOGGER.info(f"Loading teacher '{name}'...")
-                self.teachers[sk] = build_teacher_model(name, self.device)
-                n = sum(p.numel() for p in self.teachers[sk].parameters()) / 1e6
-                LOGGER.info(f"  {name}: {n:.1f}M params, embed_dim={self.teachers[sk].embed_dim}")
+                self.teacher_models[sk] = build_teacher_model(name, self.device)
+                n = sum(p.numel() for p in self.teacher_models[sk].parameters()) / 1e6
+                LOGGER.info(f"  {name}: {n:.1f}M params, embed_dim={self.teacher_models[sk].embed_dim}")
 
     def _build_transforms(self, mode):
         """Build shared transform at teacher resolution with ImageNet normalization.
@@ -332,7 +330,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         }
 
         for sk in self._safe_keys:
-            out = self.teachers[sk].encode(imgs)
+            out = self.teacher_models[sk].encode(imgs)
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result
@@ -349,7 +347,7 @@ class ImageEncoderTrainer(ClassificationTrainer):
         validator = ImageEncoderValidator(
             self.test_loader, self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
-        validator.teachers = self.teachers
+        validator.teacher_models = self.teacher_models
         return validator
 
     def label_loss_items(self, loss_items=None, prefix="train"):

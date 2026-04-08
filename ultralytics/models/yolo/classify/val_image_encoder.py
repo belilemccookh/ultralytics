@@ -55,7 +55,7 @@ class ImageEncoderValidator(BaseValidator):
             _callbacks (dict, optional): Callback functions.
         """
         super().__init__(dataloader, save_dir, args, _callbacks)
-        self.teachers = {}
+        self.teacher_models = {}
         self.metrics = _DistillMetrics()
 
     def init_metrics(self, model):
@@ -89,7 +89,7 @@ class ImageEncoderValidator(BaseValidator):
         if self.args.half:
             student_imgs = student_imgs.half()
 
-        teacher_keys = list(self.teachers.keys())
+        teacher_keys = list(self.teacher_models.keys())
         result = {
             "img": student_imgs,
             "cls": torch.zeros(imgs.shape[0], dtype=torch.long, device=self.device),
@@ -97,7 +97,7 @@ class ImageEncoderValidator(BaseValidator):
         }
 
         for sk in teacher_keys:
-            out = self.teachers[sk].encode(imgs)
+            out = self.teacher_models[sk].encode(imgs)
             result[sk] = {"cls": out.cls, "patches": out.patches}
 
         return result
