@@ -9,18 +9,20 @@ from typing import Mapping
 import torch
 
 DEFAULT_CLASS_ALIASES: dict[str, str | list[str]] = {
-    # Deterministic COCO -> Obj365 name overrides.
-    # These choices are aligned with the D-FINE Obj365 -> COCO transfer map.
-    "bird": "wild bird",
-    "handbag": "handbag/satchel",
-    "suitcase": "luggage",
-    "bowl": "bowl/basin",
-    "orange": "orange/tangerine",
-    "tv": "monitor/tv",
-    "teddy bear": "stuffed toy",
-    "hair drier": "hair dryer",
-    "skis": "skating and skiing shoes",
-    "sports ball": "baseball",
+    # COCO -> Obj365 name overrides (covers both v1 and v2).
+    # v1 uses simpler names that match COCO directly for most classes;
+    # v2 renames many classes (e.g. "Handbag/Satchel", "Stuffed Toy").
+    # Aliases below are only exercised when the direct name match fails.
+    "bird": "wild bird",  # v1: wild bird, v2: Wild Bird
+    "handbag": "handbag/satchel",  # v1: handbag (direct), v2: Handbag/Satchel
+    "suitcase": "luggage",  # v1: suitcase (direct), v2: Luggage
+    "bowl": "bowl/basin",  # v1: bowl (direct), v2: Bowl/Basin
+    "orange": "orange/tangerine",  # v1: orange (direct), v2: Orange/Tangerine
+    "tv": "monitor/tv",  # v1: tv (direct), v2: Monitor/TV
+    "teddy bear": "stuffed toy",  # v1: teddy bear (direct), v2: Stuffed Toy
+    "hair drier": "hair dryer",  # v1: hair drier (direct), v2: Hair Dryer
+    "skis": "skating and skiing shoes",  # v1: skis (direct), v2: Skating and Skiing shoes
+    "sports ball": "baseball",  # v1: baseball, v2: Baseball
 }
 
 DEFAULT_CLASS_KEY_HINTS: tuple[str, ...] = ("score_head", "class_embed")
