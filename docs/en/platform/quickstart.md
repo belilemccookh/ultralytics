@@ -105,7 +105,7 @@ The sidebar provides access to all Platform sections:
 |                 | Deploy   | Your active deployments                          |
 | **Bottom**      | Trash    | Deleted items (recoverable for 30 days)          |
 |                 | Settings | Account, billing, and preferences                |
-|                 | Feedback | Send feedback to Ultralytics                     |
+|                 | Help     | Open help, docs, and feedback tools              |
 
 ### Welcome Card
 
@@ -352,7 +352,7 @@ graph LR
 Your endpoint will be ready in about a minute with:
 
 - **Unique URL**: HTTPS endpoint for API calls
-- **Auto-Scaling**: Scales with traffic automatically
+- **Scale-to-zero behavior**: No idle compute cost (deployments currently run a single active instance)
 - **Monitoring**: Request metrics and logs
 
 !!! info "Deployment Lifecycle"
@@ -367,7 +367,7 @@ Read more about [endpoints](deploy/endpoints.md).
 
 If you prefer to train on your own hardware, you can stream metrics to the platform using your API key. This works like Weights & Biases — train anywhere, monitor on the platform.
 
-1. Generate an API key in [`Settings > Profile`](account/api-keys.md) (API Keys section)
+1. Generate an API key in [`Settings > API Keys`](account/api-keys.md)
 2. Set the environment variable and train with a `project/name` format:
 
 ```bash
@@ -384,7 +384,7 @@ Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md
 
 ## Feedback & Help
 
-Use the **Help** page in the sidebar footer to send feedback directly to Ultralytics. You can rate your experience, choose a feedback type (bug report, feature request, or general), and attach screenshots.
+The **Help** page in the sidebar footer includes an in-app feedback form. You can rate your experience, choose a feedback type (bug, feature request, or general), and attach screenshots.
 
 If you need more help:
 
