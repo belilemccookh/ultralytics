@@ -38,9 +38,10 @@ def main(argv: list[str]) -> None:
     """Launch a fresh phase 1 run or resume from a checkpoint.
 
     Args:
-        argv: [gpu, teachers, name, recipe, model_yaml]
+        argv: [gpu, teachers, name, recipe, model_yaml, data, epochs]
         recipe: "default", "eupe", or "radio"
         model_yaml: e.g. "yolo26s-cls.yaml" or "yolo26l-cls.yaml"
+        epochs: overrides recipe default if provided
     """
     argv, resume = _pop_resume(argv[1:])
     resume_args = _load_train_args(resume) if resume else {}
@@ -52,6 +53,7 @@ def main(argv: list[str]) -> None:
     recipe = argv[3] if len(argv) > 3 else "default"
     model_yaml = argv[4] if len(argv) > 4 else "yolo26s-cls.yaml"
     data = argv[5] if len(argv) > 5 else "/data/shared-datasets/datacomp-12m"
+    epochs = int(argv[6]) if len(argv) > 6 else None
     r = RECIPES[recipe]
 
     model = YOLO(model_yaml)
@@ -80,7 +82,7 @@ def main(argv: list[str]) -> None:
         device=gpu,
         project=resume_args.get("project", "yolo-next-encoder"),
         name=name,
-        epochs=r["epochs"],
+        epochs=epochs or r["epochs"],
         batch=128,
         imgsz=224,
         patience=5,
