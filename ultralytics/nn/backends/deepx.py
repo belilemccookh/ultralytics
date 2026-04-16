@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils import IS_DEBIAN_TRIXIE, LOGGER
+from ultralytics.utils.checks import check_apt_requirements, is_sudo_available
 
 from .base import BaseBackend
 
@@ -29,12 +30,39 @@ class DeepXBackend(BaseBackend):
         Raises:
             FileNotFoundError: If no .dxnn file is found in the given directory.
         """
-        LOGGER.info(f"Loading {weight} for DeepX inference...")
+        cmd = ["dxrt-cli", "--version"]
+        help_url = "https://github.com/sixfab/sixfab_dx/"
+        try:
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            LOGGER.info(f"\nDeepX inference requires the DeepX runtime. Attempting install from {help_url}")
+            if not IS_DEBIAN_TRIXIE:
+                raise EnvironmentError("DeepX runtime auto-install is only supported on Debian Trixie.")
+            sudo = "sudo " if is_sudo_available() else ""
+            for c in (
+                f"wget -qO - https://sixfab.github.io/sixfab_dx/public.gpg | {sudo}gpg --dearmor -o /usr/share/keyrings/sixfab-dx.gpg",
+                f'echo "deb [signed-by=/usr/share/keyrings/sixfab-dx.gpg] https://sixfab.github.io/sixfab_dx trixie main" | {sudo}tee /etc/apt/sources.list.d/sixfab-dx.list',
+            ):
+                subprocess.run(c, shell=True, check=True, stdout=subprocess.DEVNULL)
+            check_apt_requirements(["sixfab-dx"])
+            
         try:
             from dx_engine import InferenceEngine
         except ImportError:
-            check_requirements("dx_engine")
+            if IS_DEBIAN_TRIXIE:
+                wheels = sorted(Path("/opt/sixfab-dx/wheels").glob("dx_engine-*.whl"))
+                if not wheels:
+                    raise FileNotFoundError("No dx_engine wheel found in /opt/sixfab-dx/wheels/. Ensure sixfab-dx is installed.")
+                subprocess.run(["pip", "install", str(wheels[-1])], check=True)
+            else:
+                raise EnvironmentError(
+                    "dx_engine is not installed. Auto-install is only supported on Debian Trixie. "
+                    "Please install dx_engine manually and try again."
+                )
             from dx_engine import InferenceEngine
+        
+        ver = subprocess.run(cmd, capture_output=True, check=True).stdout.decode().splitlines()[0].split()[-1].lstrip("v")
+        LOGGER.info(f"Loading {weight} for DeepX inference... (runtime v{ver})")
 
         w = Path(weight)
         found = next(w.rglob("*.dxnn"), None)
