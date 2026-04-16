@@ -2725,7 +2725,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         if self.masklet_confirmation_enable:
             status = metadata["masklet_confirmation"]["status"]
             is_unconfirmed = status == self.UNCONFIRMED
-            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids_all_gpu"][is_unconfirmed].tolist()
+            out["unconfirmed_obj_ids"] = tracker_metadata_new["obj_ids"][is_unconfirmed].tolist()
         else:
             out["unconfirmed_obj_ids"] = []
         return out
