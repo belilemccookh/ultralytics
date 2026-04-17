@@ -10,7 +10,7 @@ import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
 from ultralytics.utils import LINUX, LOGGER, MACOS
-from ultralytics.utils.checks import check_apt_requirements, check_requirements, check_version
+from ultralytics.utils.checks import check_apt_requirements, check_requirements, check_version, is_sudo_available
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.files import spaces_in_path
 from ultralytics.utils.tal import make_anchors
@@ -208,8 +208,6 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
     import subprocess
-
-    from ultralytics.utils.checks import is_sudo_available
 
     # Install Edge TPU compiler if not found
     check_cmd = "edgetpu_compiler --version"

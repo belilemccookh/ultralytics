@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 import types
@@ -247,8 +248,6 @@ def torch2imx(
         - Only supports YOLOv8n and YOLO11n models (detection, segmentation, pose, and classification tasks)
         - Output includes quantized ONNX model, IMX binary, and labels.txt file
     """
-    import re
-
     # Install Java>=17
     try:
         java_output = subprocess.run(["java", "--version"], check=True, capture_output=True).stdout.decode()
