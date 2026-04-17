@@ -19,9 +19,6 @@ TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT, "tracktrack": TRACK
 def on_predict_start(predictor: object, persist: bool = False) -> None:
     """Initialize trackers for object tracking during prediction.
 
-    Instantiates one tracker per stream, registers a ReID feature hook when appropriate, and for
-    TrackTrack attaches a postprocess hook that captures raw predictions needed by D_del.
-
     Args:
         predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize
             trackers for.
@@ -62,9 +59,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         ):
             cfg.model = "yolo26n-cls.pt"
         else:
-
+            # Register hook to extract input of Detect layer
             def pre_hook(module, input):
-                predictor._feats = list(input[0])  # unroll to avoid mutation by forward
+                predictor._feats = list(input[0])  # unroll to new list to avoid mutation in forward
 
             predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 
@@ -84,9 +81,6 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
 def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
     """Postprocess detected boxes and update with object tracking.
-
-    For TrackTrack this also computes the D_del set before calling the tracker. Results are
-    replaced in place with the tracked (re-indexed) subset.
 
     Args:
         predictor (object): The predictor object containing the predictions.
