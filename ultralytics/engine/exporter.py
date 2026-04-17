@@ -153,7 +153,7 @@ def export_formats():
             ".rtx.engine",
             False,
             True,
-            ["batch", "dynamic", "half", "int8", "simplify", "nms", "fraction"],
+            ["batch", "dynamic", "simplify", "nms"],
         ],
         [
             "TensorRT",
@@ -931,13 +931,15 @@ class Exporter:
 
     @try_export
     def export_engine_rtx(self, prefix=colorstr("TensorRT-RTX:")):
-        """Export YOLO model to NVIDIA TensorRT for RTX engine format.
+        """Export YOLO model to NVIDIA TensorRT for RTX engine format (FP32 only for now).
 
         Produces a `.rtx.engine` file portable across RTX-class GPUs. Requires the `tensorrt_rtx`
         Python package (separate from classic `tensorrt`). Engines built here are NOT interchangeable
         with classic TensorRT engines.
         """
         assert self.im.device.type != "cpu", "export running on CPU but must be on GPU, i.e. use 'device=0'"
+        assert not self.args.half, "half=True is not yet supported for format='engine_rtx' (FP32 only)"
+        assert not self.args.int8, "int8=True is not yet supported for format='engine_rtx' (FP32 only)"
         f_onnx = self.export_onnx()  # run before TRT-RTX import to isolate ONNX export failures
 
         from ultralytics.utils.checks import check_tensorrt_rtx
@@ -956,11 +958,8 @@ class Exporter:
         onnx2engine_rtx(
             f_onnx,
             f,
-            half=self.args.half,
-            int8=self.args.int8,
             dynamic=self.args.dynamic,
             shape=self.im.shape,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,
