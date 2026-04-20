@@ -319,7 +319,7 @@ For real-time video processing, use `fn.external_source` to feed frames from any
             return output
         ```
 
-    === "Inference Loop"
+    === "Inference Loop (Simple OpenCV fallback)"
 
         ```python
         import cv2
@@ -344,9 +344,9 @@ For real-time video processing, use `fn.external_source` to feed frames from any
             pipe.feed_input("input", [np.array(frame_rgb)])
             (output,) = pipe.run()
 
-            # Convert DALI output to torch tensor for inference
-            # Note: this GPU->CPU->GPU copy is required when using feed_input with pipe.run()
-            # For reader-based pipelines, use DALIGenericIterator for direct GPU->GPU transfer
+            # Convert DALI output to torch tensor for inference.
+            # This is a simple fallback path: using feed_input() with pipe.run() keeps a GPU->CPU->GPU copy.
+            # For high-throughput deployments, prefer a reader-based pipeline plus DALIGenericIterator to keep data on GPU.
             tensor = torch.tensor(output.as_cpu().as_array()).to("cuda")
             results = model.predict(tensor, verbose=False)
         ```
