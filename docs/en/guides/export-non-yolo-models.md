@@ -13,7 +13,7 @@ Ultralytics ships standalone export utilities that wrap all of these behind one 
 ## Why Use Ultralytics for Non-YOLO Export?
 
 - **One API across 10 formats:** learn a single calling convention instead of a dozen.
-- **Automatic dependency resolution:** missing packages (`onnx`, `coremltools`, `openvino`, `MNN`, `pnnx`, etc.) are detected and installed on first use.
+- **Shared utility surface:** the export helpers live under `ultralytics.utils.export`, so once the backend packages are installed you can keep the same calling pattern across formats.
 - **Production-tested:** the same export code path powers every Ultralytics YOLO export.
 - **FP16 and INT8 quantization** built in for formats that support it (OpenVINO, CoreML, MNN, NCNN).
 - **Works on CPU:** no GPU required for the export step itself, so you can run it locally on any laptop.
@@ -28,7 +28,7 @@ The `torch2*` functions take a standard `torch.nn.Module` and an example input t
 | TorchScript     | `torch2torchscript()` | included with PyTorch                              | `.torchscript` file            |
 | OpenVINO        | `torch2openvino()`    | `pip install openvino`                             | `_openvino_model/` directory   |
 | CoreML          | `torch2coreml()`      | `pip install coremltools`                          | `.mlpackage`                   |
-| TF SavedModel   | `onnx2saved_model()`  | `pip install onnx2tf tensorflow tf_keras sng4onnx` | `_saved_model/` directory      |
+| TF SavedModel   | `onnx2saved_model()`  | see detailed requirements below                    | `_saved_model/` directory      |
 | TF Frozen Graph | `keras2pb()`          | same as TF SavedModel                              | `.pb` file                     |
 | NCNN            | `torch2ncnn()`        | `pip install ncnn pnnx`                            | `_ncnn_model/` directory       |
 | MNN             | `onnx2mnn()`          | `pip install MNN`                                  | `.mnn` file                    |
@@ -53,7 +53,7 @@ model = timm.create_model("resnet18", pretrained=True).eval()
 torch2onnx(model, torch.randn(1, 3, 224, 224), output_file="resnet18.onnx")
 ```
 
-For other formats, swap `torch2onnx` for the target function in the [format table](#supported-export-formats) above and adjust arguments. See the [step-by-step examples](#step-by-step-examples) below for each format.
+For other formats, swap `torch2onnx` for the target function in the [format table](#supported-export-formats) above and adjust arguments. For MNN, TF SavedModel, and TF Frozen Graph, follow the two-step ONNX-first flow shown below.
 
 ## Step-by-Step Examples
 
@@ -175,7 +175,7 @@ from ultralytics.utils.export import torch2ncnn
 torch2ncnn(model, im, output_dir="resnet18_ncnn_model")
 ```
 
-The directory contains fixed-name `model.ncnn.param` and `model.ncnn.bin` files along with a `model_ncnn.py` wrapper. Dependencies `ncnn` and `pnnx` are installed automatically on first use.
+The directory contains fixed-name `model.ncnn.param` and `model.ncnn.bin` files along with a `model_ncnn.py` wrapper. `torch2ncnn()` checks for `ncnn` and `pnnx` on first use.
 
 ### Export to MNN
 
@@ -264,7 +264,7 @@ All supported formats (TorchScript, ONNX, OpenVINO, CoreML, TF SavedModel, NCNN,
 
 ### What Ultralytics version do I need?
 
-The standalone export functions are available starting from `ultralytics>=8.4.38` following the exporter refactor and the unified-args update that standardized the `output_file` and `output_dir` parameters.
+Use a recent Ultralytics release that includes the `ultralytics.utils.export` module and the standardized `output_file`/`output_dir` arguments.
 
 ### Can I export a torchvision model to CoreML for iOS deployment?
 
