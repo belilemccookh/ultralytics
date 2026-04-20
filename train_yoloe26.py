@@ -258,6 +258,51 @@ DATA_CONFIG["old_enginecache"] = dict(
     )
 )
 
+DATA_CONFIG["old_enginecache"] = dict(
+    train=dict(
+        grounding_data=[
+            dict(
+                img_path="../datasets/Objects365v1/images/train",
+                json_file="../datasets/Objects365v1/annotations/objects365_train_segm.engine.cache",
+            ) ,
+            dict(
+                img_path="../datasets/flickr/full_images/",
+                json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.engine.cache"
+            ),
+            dict(
+                img_path="../datasets/mixed_grounding/gqa/images",
+                json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.engine.cache"
+            ),
+        ]
+    ),
+    val=dict(
+        yolo_data=["../datasets/lvis.yaml"]
+    )
+)
+
+DATA_CONFIG["old_engine1cache"] = dict(
+    train=dict(
+        grounding_data=[
+            dict(
+                img_path="../datasets/Objects365v1/images/train",
+                json_file="../datasets/Objects365v1/annotations/objects365_train_segm.engine1.cache",
+            ) ,
+            dict(
+                img_path="../datasets/flickr/full_images/",
+                json_file="../datasets/flickr/annotations/final_flickr_separateGT_train_segm.engine1.cache"
+            ),
+            dict(
+                img_path="../datasets/mixed_grounding/gqa/images",
+                json_file="../datasets/mixed_grounding/annotations/final_mixed_train_no_coco_segm.engine1.cache"
+            ),
+        ]
+    ),
+    val=dict(
+        yolo_data=["../datasets/lvis.yaml"]
+    )
+)
+
+
 
 
 import ultralytics,os
@@ -379,7 +424,7 @@ if args.trainer == "YOLOETrainerFromScratch" or args.trainer== "YOLOESegTrainerF
 elif args.trainer == "YOLOEVPTrainer":
     print("Using YOLOEVPTrainer for training.")
     # reinit the model.model.savpe.
-    model.model.model[-1].savpe.init_weights()
+    # model.model.model[-1].savpe.init_weights()
 
     # freeze every layer except of the savpe module.
     head_index = len(model.model.model) - 1
@@ -400,7 +445,7 @@ elif args.trainer == "YOLOEVPTrainer":
             #         f"{head_index}.{name}.1.norm",
             #         f"{head_index}.{name}.2.norm",
             #     ]  )
-            continue
+            freeze.append(f"{head_index}.{name}")
         else:
             freeze.append(f"{head_index}.{name}")
 
@@ -494,7 +539,7 @@ train_args=dict( data=data,
     weight_decay=args.weight_decay,
     single_cls=single_cls, # for YOLOEPEFreeTrainer
     freeze=freeze, # for YOLOEVPTrainer
-    # refer_data=refer_data, # for YOLOEVPTrainer)
+    refer_data=refer_data, # for YOLOEVPTrainer)
     save_json=args.save_json,
     )
 
