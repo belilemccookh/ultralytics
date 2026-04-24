@@ -13,7 +13,11 @@ import logging
 logging.getLogger(__name__).debug("ultralytics %s loaded (personal fork)", __version__)
 
 # Disable analytics/telemetry by default in this personal fork
-SETTINGS.update({"sync": False})
+# Also set a consistent default imgsz and disable verbose output for cleaner logs
+SETTINGS.update({
+    "sync": False,
+    "verbose": False,
+})
 
 __all__ = [
     "__version__",
