@@ -12,6 +12,9 @@ from ultralytics.models import NAS, RTDETR
 import logging
 logging.getLogger(__name__).debug("ultralytics %s loaded (personal fork)", __version__)
 
+# Disable analytics/telemetry by default in this personal fork
+SETTINGS.update({"sync": False})
+
 __all__ = [
     "__version__",
     "YOLO",
