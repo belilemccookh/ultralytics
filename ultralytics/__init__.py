@@ -17,6 +17,7 @@ logging.getLogger(__name__).debug("ultralytics %s loaded (personal fork)", __ver
 SETTINGS.update({
     "sync": False,
     "verbose": False,
+    "imgsz": 640,  # explicitly pin default image size to avoid surprises across runs
 })
 
 __all__ = [
