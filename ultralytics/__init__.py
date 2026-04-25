@@ -14,10 +14,12 @@ logging.getLogger(__name__).debug("ultralytics %s loaded (personal fork)", __ver
 
 # Disable analytics/telemetry by default in this personal fork
 # Also set a consistent default imgsz and disable verbose output for cleaner logs
+# Note: increased workers from default 8 -> 4 to avoid OOM on my 16GB machine
 SETTINGS.update({
     "sync": False,
     "verbose": False,
     "imgsz": 640,  # explicitly pin default image size to avoid surprises across runs
+    "workers": 4,  # reduced from 8; my machine struggles with the default during multi-GPU runs
 })
 
 __all__ = [
